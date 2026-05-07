@@ -25,8 +25,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Store token -> user_id in Redis with 1 hour expiry
             try {
+                $redisHost = getenv('REDIS_HOST') ?: '127.0.0.1';
+                $redisPort = getenv('REDIS_PORT') ?: 6379;
+                $redisPass = getenv('REDIS_PASS') ?: '';
+                
                 $redis = new Redis();
-                $redis->connect('127.0.0.1', 6379);
+                $redis->connect($redisHost, (int)$redisPort);
+                if (!empty($redisPass)) {
+                    $redis->auth($redisPass);
+                }
                 $redis->setex("session:$token", 3600, $user['id']);
 
                 echo json_encode([

@@ -12,8 +12,15 @@ if (empty($token)) {
 
 // Verify token in Redis
 try {
+    $redisHost = getenv('REDIS_HOST') ?: '127.0.0.1';
+    $redisPort = getenv('REDIS_PORT') ?: 6379;
+    $redisPass = getenv('REDIS_PASS') ?: '';
+    
     $redis = new Redis();
-    $redis->connect('127.0.0.1', 6379);
+    $redis->connect($redisHost, (int)$redisPort);
+    if (!empty($redisPass)) {
+        $redis->auth($redisPass);
+    }
     $user_id = $redis->get("session:$token");
 
     if (!$user_id) {
@@ -27,7 +34,8 @@ try {
 
 // MongoDB: store/retrieve profile details
 try {
-    $manager        = new MongoDB\Driver\Manager("mongodb://localhost:27017");
+    $mongoUri = getenv('MONGO_URI') ?: "mongodb://localhost:27017";
+    $manager  = new MongoDB\Driver\Manager($mongoUri);
     $db_name        = "guvi_task";
     $collection     = "profiles";
     $namespace      = "$db_name.$collection";
